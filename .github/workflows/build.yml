@@ -1,0 +1,77 @@
+name: Auto-Build araimo v3.0 (Clean)
+
+on: [push, workflow_dispatch]
+
+jobs:
+  build-android:
+    name: Auto-Generate & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      # ---------------------------------------------------------
+      # 🔥 STEP 1: CLEANUP & REGENERATE 🔥
+      # ---------------------------------------------------------
+      - name: Generate Clean Project
+        run: |
+          echo "Starting Clean Build..."
+          
+          # 1. Delete old folders (Washout)
+          rm -rf android ios build
+          echo "Deleted old folders."
+
+          # 2. Create fresh project (No Firebase logic here)
+          flutter create . --org com.araimo.tv --project-name araimo
+          echo "Created fresh project."
+
+      # ---------------------------------------------------------
+      # 🔥 STEP 2: INJECT CONFIG (Standard/No Google) 🔥
+      # ---------------------------------------------------------
+      - name: Inject Permissions
+        run: |
+          echo "Injecting standard permissions..."
+
+          # Permissions (Internet & Wakelock)
+          sed -i 's/<application/<uses-permission android:name="android.permission.INTERNET"\/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"\/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"\/>\n    <application/g' android/app/src/main/AndroidManifest.xml
+          
+          # MinSDK Fix
+          sed -i 's/flutter.minSdkVersion/21/g' android/app/build.gradle.kts
+
+          echo "Permissions injected."
+
+      # ---------------------------------------------------------
+      # 🔥 STEP 3: BUILD 🔥
+      # ---------------------------------------------------------
+      - name: Generate Icons
+        run: |
+          if [ ! -f assets/logo.png ]; then mkdir -p assets; curl -L -o assets/logo.png "https://cdn-icons-png.flaticon.com/512/3163/3163478.png"; fi
+          flutter pub get
+          dart run flutter_launcher_icons
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Build Split APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Bundle Results
+        run: |
+          mkdir -p release_apks
+          cp build/app/outputs/flutter-apk/app-release.apk release_apks/araimo-v3.0-Universal.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk release_apks/araimo-v3.0-Arm64.apk
+          cd release_apks && zip -r araimo-v3.0-bundle.zip .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: araimo-v3.0-bundle
+          path: release_apks/araimo-v3.0-bundle.zip
