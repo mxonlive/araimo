@@ -1,21 +1,41 @@
-name: Build araimo Stable
+name: 🧨 Factory Reset (Delete Everything)
 
-on: [push, workflow_dispatch]
+on: 
+  workflow_dispatch: # এটি ম্যানুয়ালি রান করতে হবে
+
+permissions:
+  contents: write # ডিলিট করার পারমিশন
 
 jobs:
-  build:
+  clean-repo:
+    name: Wiping Project Clean
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-    - uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: 8.5
-    - run: gradle assembleDebug
-    - uses: actions/upload-artifact@v4
-      with:
-        name: araimo-stable-apk
-        path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Delete Generated Folders
+        run: |
+          echo "Starting Cleanup Process..."
+          
+          # ১. সব প্লাটফর্ম ফোল্ডার ডিলিট করা হচ্ছে
+          rm -rf android ios web macos windows linux
+          
+          # ২. টেম্পোরারি ফোল্ডার ডিলিট
+          rm -rf build .dart_tool .idea
+          
+          # ৩. আইকন কনফিগারেশন ফাইল ডিলিট (যদি থাকে)
+          rm -f android/app/src/main/res/mipmap-*/ic_launcher.png
+          
+          echo "All generated folders deleted successfully."
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "Adiba 2.0 Auto-Cleaner"
+          git config --global user.email "adiba@bot.com"
+          
+          git add .
+          
+          # যদি ডিলিট করার মতো কিছু থাকে তবেই পুশ করবে
+          git commit -m "🧨 Factory Reset: Deleted old Android/iOS folders" || echo "Nothing to delete"
+          git push
