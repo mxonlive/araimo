@@ -1,0 +1,12 @@
+{
+  "notice": "Welcome to Araimo! Watch without interruption.",
+  "about_notice": "Araimo is a simple player. We do not host any content.",
+  "playlist_url": "https://mxonlive.short.gy/araimo-playlist-m3u",
+  "telegram_url": "https://t.me/araimo",
+  "update_data": {
+    "show": true,
+    "version": "v4.0.0",
+    "note": "New Group Filter added!",
+    "download_url": "https://example.com/download"
+  }
+}
