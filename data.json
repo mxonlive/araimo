@@ -1,7 +1,7 @@
 {
   "notice": "Welcome to Araimo! Watch without interruption.",
   "about_notice": "Araimo is a simple player. We do not host any content.",
-  "playlist_url": "https://raw.githubusercontent.com/abusaeeidx/iptv-playlist/refs/heads/main/wavesot.m3u",
+  "playlist_url": "https://mxonlive.short.gy/araimo-playlist-m3u",
   "telegram_url": "https://t.me/araimo",
   "update_data": {
     "show": true,
